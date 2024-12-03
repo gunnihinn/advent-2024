@@ -1,15 +1,25 @@
 import argparse
 import collections
 import itertools
+import re
 from typing import *
 
 
 def parse(fh):
-    return []
+    re_mul = re.compile(r"mul\(([0-9]{1,3}),([0-9]{1,3})\)")
+    lines = []
+    for line in fh.readlines():
+        pairs = []
+        while m := re_mul.search(line):
+            pairs.append((int(m.group(1)), int(m.group(2))))
+            line = line[m.span()[1] :]
+        lines.append(pairs)
+
+    return lines
 
 
 def part1(data):
-    return 0
+    return sum(sum(a * b for a, b in pairs) for pairs in data)
 
 
 def part2(data):
