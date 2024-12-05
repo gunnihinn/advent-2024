@@ -26,22 +26,14 @@ def in_order(line, rules):
 def part1(data):
     rules, lines = data
 
-    total = 0
-    for line in lines:
-        if in_order(line, rules):
-            total += line[len(line) // 2]
-
-    return total
+    return sum(line[len(line) // 2] for line in lines if in_order(line, rules))
 
 
 def part2(data):
     rules, lines = data
 
     total = 0
-    for line in lines:
-        if in_order(line, rules):
-            continue
-
+    for line in (line for line in lines if not in_order(line, rules)):
         line = list(line)
         while not in_order(line, rules):
             for i in range(len(line) - 1):
