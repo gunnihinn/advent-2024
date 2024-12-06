@@ -1,6 +1,5 @@
 import argparse
 import collections
-import itertools
 
 
 def parse(fh):
@@ -19,12 +18,12 @@ def parse(fh):
 
 
 def render(guard, grid):
-    m_x = max(v[0] for v in grid)
-    m_y = max(v[1] for v in grid)
+    m_x = max(v[0] for v in grid) + 1
+    m_y = max(v[1] for v in grid) + 1
 
-    for y in range(m_y + 1):
+    for y in range(m_y):
         line = []
-        for x in range(m_x + 1):
+        for x in range(m_x):
             if guard[0] == x and guard[1] == y:
                 line.append(guard[2])
             else:
@@ -32,8 +31,9 @@ def render(guard, grid):
         print("".join(line))
 
 
-def part1(data):
-    (x, y, d), grid = data
+def escapes_after(guard, grid):
+    "Return number of steps until guard escapes or 0 if they loop"
+    x, y, d = guard
 
     dirs = {
         "^": ">",
@@ -43,7 +43,10 @@ def part1(data):
     }
     visited = set()
     while grid[(x, y)]:
-        visited.add((x, y))
+        if (x, y, d) in visited:
+            return 0
+
+        visited.add((x, y, d))
         if d == "^":
             dx, dy = 0, -1
         elif d == ">":
@@ -59,11 +62,35 @@ def part1(data):
 
         x, y = x + dx, y + dy
 
-    return len(visited)
+    return len(set((x, y) for x, y, d in visited))
+
+
+def part1(data):
+    guard, grid = data
+
+    return escapes_after(guard, grid)
 
 
 def part2(data):
-    return 0
+    guard, grid = data
+
+    count = 0
+    m_x = max(v[0] for v in grid) + 1
+    m_y = max(v[1] for v in grid) + 1
+    n = 0
+    for x in range(m_x):
+        for y in range(m_y):
+            if guard[0] == x and guard[1] == y:
+                continue
+            orig = grid[(x, y)]
+            grid[(x, y)] = "#"
+            if not escapes_after(guard, grid):
+                count += 1
+            grid[(x, y)] = orig
+
+            n += 1
+
+    return count
 
 
 if __name__ == "__main__":
