@@ -18,12 +18,14 @@ def calc(nums, combo):
             total += n
         elif op == "*":
             total *= n
+        elif op == "|":
+            d = len(str(n))
+            total = total * 10**d + n
 
     return total
 
 
-def eq(val, nums):
-    ops = ("+", "*")
+def eq(val, nums, ops):
     for combo in itertools.product(ops, repeat=len(nums) - 1):
         if val == calc(nums, combo):
             return True
@@ -31,12 +33,13 @@ def eq(val, nums):
 
 
 def part1(data):
-    return sum(val for val, nums in data.items() if eq(val, nums))
+    ops = ("+", "*")
+    return sum(val for val, nums in data.items() if eq(val, nums, ops))
 
 
 def part2(data):
-    total = 0
-    return total
+    ops = ("+", "*", "|")
+    return sum(val for val, nums in data.items() if eq(val, nums, ops))
 
 
 if __name__ == "__main__":
