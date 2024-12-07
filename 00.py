@@ -1,19 +1,21 @@
 import argparse
 import collections
 import itertools
-from typing import *
 
 
 def parse(fh):
-    return []
+    data = None
+    return data
 
 
 def part1(data):
-    return 0
+    total = 0
+    return total
 
 
 def part2(data):
-    return 0
+    total = 0
+    return total
 
 
 if __name__ == "__main__":
