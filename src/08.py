@@ -3,14 +3,51 @@ import collections
 import itertools
 
 
+class Grid:
+    def __init__(self, m_x, m_y, antennas, orig):
+        self.m_x = m_x
+        self.m_y = m_y
+        self.antennas = antennas
+        self.orig = orig
+
+
 def parse(fh):
-    data = None
-    return data
+    antennas = collections.defaultdict(list)
+    m_x = 0
+    m_y = 0
+    orig = fh.read()
+
+    for y, line in enumerate(orig.strip().split()):
+        m_y += 1
+        for x, char in enumerate(line.strip()):
+            m_x = len(line.strip())
+            if char != ".":
+                antennas[char].append((x, y))
+
+    return Grid(m_x, m_y, antennas, orig.strip().split())
+
+
+def render(grid, antinodes):
+    for y, line in enumerate(grid.orig):
+        chars = []
+        for x, char in enumerate(line):
+            if (x, y) in antinodes:
+                chars.append("#")
+            else:
+                chars.append(char)
+        print("".join(chars))
 
 
 def part1(data):
-    total = 0
-    return total
+    antinodes = set()
+
+    for freq in data.antennas:
+        for fst, snd in itertools.combinations(data.antennas[freq], 2):
+            dx, dy = snd[0] - fst[0], snd[1] - fst[1]
+            antinodes.add((fst[0] - dx, fst[1] - dy))
+            antinodes.add((snd[0] + dx, snd[1] + dy))
+
+    return sum(0 <= x < data.m_x and 0 <= y < data.m_y for x, y in antinodes)
 
 
 def part2(data):
