@@ -10,6 +10,9 @@ class Grid:
         self.antennas = antennas
         self.orig = orig
 
+    def inside(self, x, y):
+        return 0 <= x < self.m_x and 0 <= y < self.m_y
+
 
 def parse(fh):
     antennas = collections.defaultdict(list)
@@ -47,12 +50,27 @@ def part1(data):
             antinodes.add((fst[0] - dx, fst[1] - dy))
             antinodes.add((snd[0] + dx, snd[1] + dy))
 
-    return sum(0 <= x < data.m_x and 0 <= y < data.m_y for x, y in antinodes)
+    return sum(data.inside(x, y) for x, y in antinodes)
 
 
 def part2(data):
-    total = 0
-    return total
+    antinodes = set()
+
+    for freq in data.antennas:
+        for fst, snd in itertools.combinations(data.antennas[freq], 2):
+            dx, dy = snd[0] - fst[0], snd[1] - fst[1]
+
+            x, y = fst
+            while data.inside(x, y):
+                antinodes.add((x, y))
+                x, y = x - dx, y - dy
+
+            x, y = snd
+            while data.inside(x, y):
+                antinodes.add((x, y))
+                x, y = x + dx, y + dy
+
+    return sum(data.inside(x, y) for x, y in antinodes)
 
 
 if __name__ == "__main__":
