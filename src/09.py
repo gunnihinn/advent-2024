@@ -28,8 +28,17 @@ def render(data):
 
 
 def part1(data):
-    total = 0
-    return total
+    idx_free = min(i for i, block in enumerate(data) if not block.file)
+    idx_file = max(i for i, block in enumerate(data) if block.file)
+
+    while idx_free < idx_file:
+        data[idx_free], data[idx_file] = data[idx_file], data[idx_free]
+        while data[idx_free].file:
+            idx_free += 1
+        while not data[idx_file].file:
+            idx_file -= 1
+
+    return sum(i * block.id for i, block in enumerate(data) if block.file)
 
 
 def part2(data):
