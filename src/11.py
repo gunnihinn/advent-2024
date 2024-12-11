@@ -30,29 +30,25 @@ def part1(data, blink):
     return len(data)
 
 
-def rec(n, blink, limit, cache):
-    if blink == limit:
-        return 1
-
+def rec(n, blink, cache):
     if (n, blink) in cache:
         return cache[(n, blink)]
 
-    while blink < limit:
+    while blink:
         if n == 0:
             n = 1
         else:
             d = num_digits(n)
             if d % 2 == 0:
                 m = 10 ** (d // 2)
-                a = rec(n // m, blink + 1, limit, cache)
-                b = rec(n % m, blink + 1, limit, cache)
-                cache[(n // m, blink + 1)] = a
-                cache[(n % m, blink + 1)] = b
+                a = rec(n // m, blink - 1, cache)
+                b = rec(n % m, blink - 1, cache)
+                cache[(n // m, blink - 1)] = a
+                cache[(n % m, blink - 1)] = b
                 return a + b
             else:
                 n *= 2024
-
-        blink += 1
+        blink -= 1
 
     return 1
 
@@ -62,7 +58,7 @@ def part2(data, repeat):
 
     cache = {}
     for n in data:
-        a = rec(n, 0, repeat, cache)
+        a = rec(n, repeat, cache)
         cache[(n, repeat)] = a
         total += a
 
