@@ -1,6 +1,4 @@
 import argparse
-import collections
-import itertools
 import re
 
 re_digit = re.compile(r"\+?(\d+)")
