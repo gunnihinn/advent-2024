@@ -1,13 +1,12 @@
 import argparse
 import copy
-import functools
 import itertools
 
 turns = {
-    (-1, 0): ((0, 1), (0, -1)),
-    (1, 0): ((0, 1), (0, -1)),
-    (0, 1): ((1, 0), (-1, 0)),
-    (0, -1): ((1, 0), (-1, 0)),
+    (-1, 0): ((-1, 0), (0, 1), (0, -1)),
+    (1, 0): ((1, 0), (0, 1), (0, -1)),
+    (0, 1): ((0, 1), (1, 0), (-1, 0)),
+    (0, -1): ((0, -1), (1, 0), (-1, 0)),
 }
 
 
@@ -65,12 +64,12 @@ def dijkstra(grid, start):
         if current is None:
             break
 
-        (x, y), (dx, dy) = current
+        (x, y), dt = current
         neighbors = []
-        if grid[pt := (x + dx, y + dy)] == ".":
-            neighbors.append(((pt, (dx, dy)), 1))
-        for dz, dw in turns[(dx, dy)]:
-            neighbors.append((((x, y), (dz, dw)), 1000))
+        for dx, dy in turns[dt]:
+            if grid[pt := (x + dx, y + dy)] == ".":
+                cost = 1 if (dx, dy) == dt else 1001
+                neighbors.append(((pt, (dx, dy)), cost))
 
         for neighbor, cost in neighbors:
             if neighbor in dist:
@@ -102,7 +101,7 @@ def score(path):
     return total
 
 
-def part2(data):
+def part2(data, best):
     grid, start, end = data
 
     paths = [((start, (1, 0)),)]
@@ -111,15 +110,11 @@ def part2(data):
         i = 0
         while i < len(paths):
             path = paths.pop(i)
-            (x, y), (dx, dy) = path[-1]
-            if grid[pt := (x + dx, y + dy)] == ".":
-                if all(xy != pt for xy, _ in path):
-                    if pt == end:
-                        completed.append(path + ((pt, (dx, dy)),))
-                    else:
-                        paths.insert(i, path + ((pt, (dx, dy)),))
-                        i += 1
-            for dx, dy in turns[(dx, dy)]:
+            if score(path) > best:
+                continue
+
+            (x, y), dt = path[-1]
+            for dx, dy in turns[dt]:
                 if grid[pt := (x + dx, y + dy)] == ".":
                     if all(xy != pt for xy, _ in path):
                         if pt == end:
@@ -128,10 +123,9 @@ def part2(data):
                             paths.insert(i, path + ((pt, (dx, dy)),))
                             i += 1
 
-    m = min(score(path) for path in completed)
     walked = set()
     for path in completed:
-        if score(path) == m:
+        if score(path) == best:
             for xy, _ in path:
                 walked.add(xy)
 
@@ -146,5 +140,6 @@ if __name__ == "__main__":
     with open(args.filename) as fh:
         data = parse(fh)
 
-    print(part1(copy.deepcopy(data)))
-    print(part2(copy.deepcopy(data)))
+    best = part1(copy.deepcopy(data))
+    print(best)
+    print(part2(copy.deepcopy(data), best))
