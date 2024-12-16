@@ -86,12 +86,56 @@ def dijkstra(grid, start):
 def part1(data):
     grid, start, end = data
     dist = dijkstra(grid, start)
+
     return min(dist.get((end, t), 10**20) for t in turns)
 
 
-def part2(data):
+def score(path):
     total = 0
+
+    for (_, dt1), (_, dt2) in itertools.pairwise(path):
+        if dt1 == dt2:
+            total += 1
+        else:
+            total += 1001
+
     return total
+
+
+def part2(data):
+    grid, start, end = data
+
+    paths = [((start, (1, 0)),)]
+    completed = []
+    while paths:
+        i = 0
+        while i < len(paths):
+            path = paths.pop(i)
+            (x, y), (dx, dy) = path[-1]
+            if grid[pt := (x + dx, y + dy)] == ".":
+                if all(xy != pt for xy, _ in path):
+                    if pt == end:
+                        completed.append(path + ((pt, (dx, dy)),))
+                    else:
+                        paths.insert(i, path + ((pt, (dx, dy)),))
+                        i += 1
+            for dx, dy in turns[(dx, dy)]:
+                if grid[pt := (x + dx, y + dy)] == ".":
+                    if all(xy != pt for xy, _ in path):
+                        if pt == end:
+                            completed.append(path + ((pt, (dx, dy)),))
+                        else:
+                            paths.insert(i, path + ((pt, (dx, dy)),))
+                            i += 1
+
+    m = min(score(path) for path in completed)
+    walked = set()
+    for path in completed:
+        if score(path) == m:
+            for xy, _ in path:
+                walked.add(xy)
+
+    return len(walked)
 
 
 if __name__ == "__main__":
