@@ -99,9 +99,66 @@ def part1(data):
     return sum(gps(xy) for xy, v in grid.items() if v == "O")
 
 
+def embiggen(grid, robot):
+    new = collections.defaultdict(str)
+    for (x, y), char in grid.items():
+        if char == "#":
+            new[(2 * x, y)] = char
+            new[(2 * x + 1, y)] = char
+        elif char == "O":
+            new[(2 * x, y)] = "["
+            new[(2 * x + 1, y)] = "]"
+
+    x, y = robot
+    new[(2 * x, y)] = "@"
+
+    return new, (2 * x, y)
+
+
+def moves2(grid, robot, move):
+    if move[1] == 0:
+        return moves(grid, robot, move)
+    x, y = robot
+    dx, dy = move
+    steps = 1
+    while True:
+        pos = (x + steps * dx, y + steps * dy)
+        char = grid[pos]
+        if char == "#":
+            return False, steps
+        if not char:
+            return True, steps
+        steps += 1
+
+
+def step2(grid, robot, move):
+    do, steps = moves2(grid, robot, move)
+    if not do:
+        return grid, robot
+
+    x, y = robot
+    dx, dy = move
+    assert (v := grid[(x + steps * dx, y + steps * dy)]) == "", f"expected empty string got {v}"
+    for n in range(steps, 1, -1):
+        grid[(x + n * dx, y + n * dy)] = grid[(x + (n - 1) * dx, y + (n - 1) * dy)]
+    grid[(x, y)] = ""
+
+    return grid, (x + dx, y + dy)
+
+
 def part2(data):
-    total = 0
-    return total
+    grid, robot, moves = data
+    grid, robot = embiggen(grid, robot)
+
+    print("initial")
+    print(render(grid, robot))
+    for move in moves:
+        grid, robot = step2(grid, robot, move)
+        print(f"Move {names[move]}")
+        print(render(grid, robot))
+        break
+
+    return sum(gps(xy) for xy, v in grid.items() if v == "O")
 
 
 if __name__ == "__main__":
