@@ -90,13 +90,21 @@ def part1(data):
 
 
 def score(path):
-    total = 0
+    points, start, end, _ = path
 
-    for (_, dt1), (_, dt2) in itertools.pairwise(path):
-        if dt1 == dt2:
-            total += 1
+    x, y = start
+    dt = (1, 0)
+    total = 0
+    while (x, y) != end:
+        for dx, dy in turns[dt]:
+            if (pt := (x + dx, y + dy)) in points:
+                cost = 1 if (dx, dy) == dt else 1001
+                total += cost
+                dt = (dx, dy)
+                x, y = pt
+                break
         else:
-            total += 1001
+            break
 
     return total
 
@@ -104,30 +112,38 @@ def score(path):
 def part2(data, best):
     grid, start, end = data
 
-    paths = [((start, (1, 0)),)]
+    # path: [points, start, current, tangent]
+
+    paths = [[{start}, start, start, (1, 0)]]
     completed = []
     while paths:
         i = 0
+        print(f"checking {len(paths)} paths, completed {len(completed)}")
         while i < len(paths):
             path = paths.pop(i)
             if score(path) > best:
                 continue
 
-            (x, y), dt = path[-1]
+            x, y = path[2]
+            dt = path[3]
             for dx, dy in turns[dt]:
-                if grid[pt := (x + dx, y + dy)] == ".":
-                    if all(xy != pt for xy, _ in path):
-                        if pt == end:
-                            completed.append(path + ((pt, (dx, dy)),))
-                        else:
-                            paths.insert(i, path + ((pt, (dx, dy)),))
-                            i += 1
+                if grid[pt := (x + dx, y + dy)] == "." and pt not in path[0]:
+                    p = copy.deepcopy(path)
+                    p[0].add(pt)
+                    if pt == end:
+                        p[2] = pt
+                        p[3] = (dx, dy)
+                        completed.append(p)
+                    else:
+                        p[2] = pt
+                        p[3] = (dx, dy)
+                        paths.insert(i, p)
+                        i += 1
 
     walked = set()
     for path in completed:
         if score(path) == best:
-            for xy, _ in path:
-                walked.add(xy)
+            walked.update(path[0])
 
     return len(walked)
 
@@ -140,6 +156,6 @@ if __name__ == "__main__":
     with open(args.filename) as fh:
         data = parse(fh)
 
-    best = part1(copy.deepcopy(data))
-    print(best)
-    print(part2(copy.deepcopy(data), best))
+    # best = part1(copy.deepcopy(data))
+    # print(best)
+    print(part2(copy.deepcopy(data), 75416))
