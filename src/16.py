@@ -109,6 +109,41 @@ def score(path):
     return total
 
 
+def p2(grid, start, end, best, path):
+    if path[4] > best:
+        return None
+
+    x, y = path[2]
+    dt = path[3]
+    for dx, dy in turns[dt]:
+        if grid[pt := (x + dx, y + dy)] == "." and pt not in path[0]:
+            cost = 1 if (dx, dy) == dt else 1001
+            if path[4] + cost <= best:
+                p = copy.deepcopy(path)
+                p[4] += cost
+                p[0].add(pt)
+                if pt == end:
+                    p[2] = pt
+                    p[3] = (dx, dy)
+                    yield p
+                else:
+                    p[2] = pt
+                    p[3] = (dx, dy)
+                    yield from p2(grid, start, end, best, p)
+
+
+def part2rec(data, best):
+    grid, start, end = data
+
+    walked = set()
+    for path in p2(grid, start, end, best, [{start}, start, start, (1, 0), 0]):
+        print(f"path={path}")
+        if path is not None and path[4] == best:
+            walked.update(path[0])
+
+    return len(walked)
+
+
 def part2(data, best):
     grid, start, end = data
 
@@ -158,4 +193,5 @@ if __name__ == "__main__":
 
     # best = part1(copy.deepcopy(data))
     # print(best)
-    print(part2(copy.deepcopy(data), 75416))
+    # print(part2(copy.deepcopy(data), 75416))
+    print(part2rec(copy.deepcopy(data), 75416))
