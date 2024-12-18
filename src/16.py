@@ -89,96 +89,39 @@ def part1(data):
     return min(dist.get((end, t), 10**20) for t in turns)
 
 
-def score(path):
-    points, start, end, _ = path
-
-    x, y = start
-    dt = (1, 0)
-    total = 0
-    while (x, y) != end:
-        for dx, dy in turns[dt]:
-            if (pt := (x + dx, y + dy)) in points:
-                cost = 1 if (dx, dy) == dt else 1001
-                total += cost
-                dt = (dx, dy)
-                x, y = pt
-                break
-        else:
-            break
-
-    return total
-
-
-def p2(grid, start, end, best, path):
-    if path[4] > best:
-        return None
-
-    x, y = path[2]
-    dt = path[3]
+def p2(grid, start, end, best, dt, score, path, idx=0):
+    x, y = path[idx]
     for dx, dy in turns[dt]:
-        if grid[pt := (x + dx, y + dy)] == "." and pt not in path[0]:
+        if grid[pt := (x + dx, y + dy)] == "." and pt not in path[: idx + 1]:
             cost = 1 if (dx, dy) == dt else 1001
-            if path[4] + cost <= best:
-                p = copy.deepcopy(path)
-                p[4] += cost
-                p[0].add(pt)
+            if score + cost <= best:
                 if pt == end:
-                    p[2] = pt
-                    p[3] = (dx, dy)
-                    yield p
+                    path[idx + 1] = pt
+                    yield (score + cost, path[: idx + 2])
                 else:
-                    p[2] = pt
-                    p[3] = (dx, dy)
-                    yield from p2(grid, start, end, best, p)
+                    path[idx + 1] = pt
+                    yield from p2(
+                        grid,
+                        start,
+                        end,
+                        best,
+                        (dx, dy),
+                        score + cost,
+                        path,
+                        idx + 1,
+                    )
 
 
 def part2rec(data, best):
     grid, start, end = data
 
     walked = set()
-    for path in p2(grid, start, end, best, [{start}, start, start, (1, 0), 0]):
-        print(f"path={path}")
-        if path is not None and path[4] == best:
-            walked.update(path[0])
-
-    return len(walked)
-
-
-def part2(data, best):
-    grid, start, end = data
-
-    # path: [points, start, current, tangent]
-
-    paths = [[{start}, start, start, (1, 0)]]
-    completed = []
-    while paths:
-        i = 0
-        print(f"checking {len(paths)} paths, completed {len(completed)}")
-        while i < len(paths):
-            path = paths.pop(i)
-            if score(path) > best:
-                continue
-
-            x, y = path[2]
-            dt = path[3]
-            for dx, dy in turns[dt]:
-                if grid[pt := (x + dx, y + dy)] == "." and pt not in path[0]:
-                    p = copy.deepcopy(path)
-                    p[0].add(pt)
-                    if pt == end:
-                        p[2] = pt
-                        p[3] = (dx, dy)
-                        completed.append(p)
-                    else:
-                        p[2] = pt
-                        p[3] = (dx, dy)
-                        paths.insert(i, p)
-                        i += 1
-
-    walked = set()
-    for path in completed:
-        if score(path) == best:
-            walked.update(path[0])
+    path = [None] * (len(grid) + 1)
+    path[0] = start
+    for path in p2(grid, start, end, best, (1, 0), 0, path):
+        if path is not None and path[0] == best:
+            walked.update(path[1])
+            print(f"tiles seen={len(walked)}")
 
     return len(walked)
 
@@ -193,5 +136,5 @@ if __name__ == "__main__":
 
     # best = part1(copy.deepcopy(data))
     # print(best)
-    # print(part2(copy.deepcopy(data), 75416))
+    # print(part2rec(copy.deepcopy(data), best))
     print(part2rec(copy.deepcopy(data), 75416))

@@ -1,7 +1,5 @@
 import argparse
-import collections
-import itertools
-import math
+import copy
 import re
 
 
@@ -10,6 +8,8 @@ class Computer:
         self.A, self.B, self.C = registers
         self.program = program
         self.ip = 0
+        self.out = []
+        self.part2 = False
 
     def literal(self, idx):
         return self.program[idx]
@@ -31,11 +31,11 @@ class Computer:
         ins = self.program[self.ip]
 
         if ins == 0:
-            self.A = math.floor(self.A / 2 ** self.combo(self.ip + 1))
+            self.A = self.A >> self.combo(self.ip + 1)
         elif ins == 1:
             self.B = self.B ^ self.literal(self.ip + 1)
         elif ins == 2:
-            self.B = self.combo(self.ip + 1) % 8
+            self.B = self.combo(self.ip + 1) & 0b111
         elif ins == 3:
             if self.A == 0:
                 pass
@@ -46,19 +46,43 @@ class Computer:
         elif ins == 4:
             self.B = self.B ^ self.C
         elif ins == 5:
-            print(f"{self.combo(self.ip + 1) % 8},", end="")
+            val = self.combo(self.ip + 1) & 0b111
+            if self.part2 and not self.program[len(self.out)] == val:
+                raise ValueError()
+            self.out.append(val)
         elif ins == 6:
-            self.B = math.floor(self.A / 2 ** self.combo(self.ip + 1))
+            self.B = self.A >> self.combo(self.ip + 1)
         elif ins == 7:
-            self.C = math.floor(self.A / 2 ** self.combo(self.ip + 1))
+            self.C = self.A >> self.combo(self.ip + 1)
         self.ip += 2
 
-    def run(self):
+    def run(self, A=None):
+        if A is not None:
+            self.A = A
+
         while True:
             try:
                 self.instruction()
             except IndexError:
-                return
+                return self.out
+
+    def run2(self, A):
+        b, c = self.B, self.C
+        while True:
+            if A % 100_000 == 0:
+                print(f". A={A}")
+            try:
+                got = self.run(A)
+                if got == self.program:
+                    print(f"    got={got}")
+                    return A
+                else:
+                    raise ValueError()
+            except ValueError:
+                A += 1
+                self.B, self.C = b, c
+                self.ip = 0
+                self.out = []
 
 
 def parse(fh):
@@ -72,22 +96,25 @@ def parse(fh):
 
 
 def part1(data):
-    data.run()
-    print("")
+    return ",".join(str(n) for n in data.run())
 
 
-def part2(data):
-    total = 0
-    return total
+def part2(data, A):
+    print(f"program={data.program}")
+    assert data.ip == 0
+    data.part2 = True
+    return data.run2(A)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--A", type=int, default=0, help="start part 2 with this A")
     parser.add_argument("filename", help="file with problem input")
     args = parser.parse_args()
 
     with open(args.filename) as fh:
         data = parse(fh)
 
-    part1(data)
-    print(part2(data))
+    print(part1(copy.deepcopy(data)))
+    # Have run up to A=85_000_000
+    print(part2(copy.deepcopy(data), args.A))
