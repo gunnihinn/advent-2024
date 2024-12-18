@@ -27,6 +27,7 @@ def render(lower, upper, points):
 
 
 def dijkstra(lower, upper, points):
+    points = set(points)
     assert (0, 0) not in points
     unvisited = {(x, y) for x, y in itertools.product(range(lower, upper + 1), repeat=2) if (x, y) not in points}
     dist = {(0, 0): 0}
@@ -72,8 +73,22 @@ def part1(data):
 
 
 def part2(data):
-    total = 0
-    return total
+    lower, upper, byte_limit, points = data
+
+    good = 0
+    bad = len(points) - 1
+    idx = (good + bad) // 2
+    while good < idx < bad:
+        escape = (upper, upper) in dijkstra(lower, upper, points[:idx])
+        print(f"good={good}, bad={bad}, idx={idx}, escaped={escape}")
+        if escape:
+            good = idx
+        else:
+            bad = idx
+        idx = (good + bad) // 2
+    print(f"good={good}, bad={bad}, idx={idx}, escaped={escape}")
+
+    return f"{points[good][0]},{points[good][1]}"
 
 
 if __name__ == "__main__":
