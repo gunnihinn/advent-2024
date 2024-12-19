@@ -11,29 +11,29 @@ def parse(fh):
 
 
 @functools.cache
-def p1rec(patterns, design, i=0):
+def rec(patterns, design, i=0):
     if i == len(design):
-        return True
+        return 1
 
-    for p in patterns:
-        if design.startswith(p, i) and p1rec(patterns, design, i + len(p)):
-            return True
-
-    return False
+    return sum(design.startswith(p, i) and rec(patterns, design, i + len(p)) for p in patterns)
 
 
 def part1(data):
     patterns, designs = data
 
     def m(d):
-        return p1rec(patterns, d)
+        return rec(patterns, d) > 0
 
     return sum(m(design) for design in designs)
 
 
 def part2(data):
-    total = 0
-    return total
+    patterns, designs = data
+
+    def m(d):
+        return rec(patterns, d)
+
+    return sum(m(design) for design in designs)
 
 
 if __name__ == "__main__":
